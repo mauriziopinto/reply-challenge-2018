@@ -5,11 +5,11 @@ from skimage.draw import polygon_perimeter
 from skimage.draw import ellipse
 from heapq import *
 
-f_name = "input_3.txt"
+f_name = "input_4.txt"
 
 # load start and end positions
 with open(f_name, 'r') as f:
-    start_end = np.fromstring(f.readline(), dtype=float, sep=" ")
+	start_end = np.fromstring(f.readline(), dtype=float, sep=" ")
 
 start_x = start_end[0]
 start_y = start_end[1]
@@ -77,8 +77,8 @@ for obstacle in data: #[:5000]:
 	y3 = int(obstacle[5])
 	r = np.array([x1, x2, x3])
 	c = np.array([y1, y1, y3])
-	#rr, cc = polygon(r, c)
-	rr, cc = polygon_perimeter(r, c)
+	rr, cc = polygon(r, c)
+	#rr, cc = polygon_perimeter(r, c)
 	img[rr, cc] = 1
 
 # mark start and end (test only)
@@ -91,56 +91,56 @@ for obstacle in data: #[:5000]:
 # a*
 
 def heuristic(a, b):
-    return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+	return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 
 def astar(array, start, goal):
 
-    neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
+	neighbors = [(0,1),(0,-1),(1,0),(-1,0),(1,1),(1,-1),(-1,1),(-1,-1)]
 
-    close_set = set()
-    came_from = {}
-    gscore = {start:0}
-    fscore = {start:heuristic(start, goal)}
-    oheap = []
+	close_set = set()
+	came_from = {}
+	gscore = {start:0}
+	fscore = {start:heuristic(start, goal)}
+	oheap = []
 
-    heappush(oheap, (fscore[start], start))
-    
-    while oheap:
+	heappush(oheap, (fscore[start], start))
+	
+	while oheap:
 
-        current = heappop(oheap)[1]
+		current = heappop(oheap)[1]
 
-        if current == goal:
-            data = []
-            while current in came_from:
-                data.append(current)
-                current = came_from[current]
-            return data
+		if current == goal:
+			data = []
+			while current in came_from:
+				data.append(current)
+				current = came_from[current]
+			return data
 
-        close_set.add(current)
-        for i, j in neighbors:
-            neighbor = current[0] + i, current[1] + j            
-            tentative_g_score = gscore[current] + heuristic(current, neighbor)
-            if 0 <= neighbor[0] < array.shape[0]:
-                if 0 <= neighbor[1] < array.shape[1]:                
-                    if array[neighbor[0]][neighbor[1]] == 1:
-                        continue
-                else:
-                    # array bound y walls
-                    continue
-            else:
-                # array bound x walls
-                continue
-                
-            if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
-                continue
-                
-            if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
-                came_from[neighbor] = current
-                gscore[neighbor] = tentative_g_score
-                fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
-                heappush(oheap, (fscore[neighbor], neighbor))
-                
-    return False
+		close_set.add(current)
+		for i, j in neighbors:
+			neighbor = current[0] + i, current[1] + j            
+			tentative_g_score = gscore[current] + heuristic(current, neighbor)
+			if 0 <= neighbor[0] < array.shape[0]:
+				if 0 <= neighbor[1] < array.shape[1]:                
+					if array[neighbor[0]][neighbor[1]] == 1:
+						continue
+				else:
+					# array bound y walls
+					continue
+			else:
+				# array bound x walls
+				continue
+				
+			if neighbor in close_set and tentative_g_score >= gscore.get(neighbor, 0):
+				continue
+				
+			if  tentative_g_score < gscore.get(neighbor, 0) or neighbor not in [i[1]for i in oheap]:
+				came_from[neighbor] = current
+				gscore[neighbor] = tentative_g_score
+				fscore[neighbor] = tentative_g_score + heuristic(neighbor, goal)
+				heappush(oheap, (fscore[neighbor], neighbor))
+				
+	return False
 
 '''Here is an example of using my algo with a numpy array,
    astar(array, start, destination)
@@ -154,12 +154,16 @@ print("Path finding completed")
 
 img[img > 0] = 255
 
+rgb_img = np.stack((img,)*3, -1)
+
 for step in path:
 	rr, cc = ellipse(step[0], step[1], 10, 10)
-	img[rr, cc] = 255
+	rgb_img[rr, cc, 0] = 255
+	rgb_img[rr, cc, 1] = 0
+	rgb_img[rr, cc, 2] = 0
 
 # resize and save as image
-resized = scipy.misc.imresize(img, (int(max_x/5), int(max_y/5)))
+resized = scipy.misc.imresize(rgb_img, (int(max_x/5), int(max_y/5)))
 scipy.misc.imsave("map.png", resized)
 
 # TODO shift the coordinates to the original reference (-shiftx, -shifty)
