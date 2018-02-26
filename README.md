@@ -1,2 +1,7 @@
-# reply-challenge-2018
-Test repo for the Reply Challenge 2018
+# Reply Challenge 2018
+
+Path finding:
+
+* create map as a numpy array of 1 and 0
+* draw polygons to represent obstacles
+* A* algo
